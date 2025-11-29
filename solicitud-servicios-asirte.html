@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Servicios - ASIRTE</title>
+    <style>
+        .asirte-calculator {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .asirte-calculator h2 {
+            text-align: center;
+            color: #005373;
+            margin-top: 0;
+        }
+        .asirte-calculator p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .responsabilidad {
+            text-align: center;
+            color: #005373;
+            font-style: italic;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #005373;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .checkbox-group {
+            margin-bottom: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .checkbox-item {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-item input {
+            margin-right: 8px;
+            transform: scale(1.2);
+            accent-color: #005373;
+        }
+        .checkbox-item.incluido input {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .checkbox-item.incluido label {
+            color: #888;
+            text-decoration: line-through;
+        }
+        #resultado-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+        #costo-hora-container,
+        #costo-turno-container {
+            font-size: 1.2em;
+            color: #005373;
+            margin: 5px 0;
+        }
+        #timer-display {
+            color: #666;
+            font-size: .9em;
+            margin-top: 8px;
+            display: none;
+        }
+        .btn-actions {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .btn-action {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+        }
+        #btn-borrar { background-color: #e91e63; }
+        #btn-nueva-cotizacion,
+        #btn-cancelar { background-color: #757575; }
+        #mensaje-ocultado {
+            color: #666;
+            font-size: .9em;
+            display: block;
+        }
+        .terms-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            font-size: .9em;
+            display: block;
+        }
+        .terms-checkbox {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .terms-checkbox input {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .btn-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #btn-cotizar {
+            background-color: #005373;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
+            max-width: 350px;
+            transition: all 0.3s ease;
+        }
+        #btn-cotizar:hover:not(:disabled) {
+            background-color: #003d57;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #btn-confirmar-whatsapp {
+            background-color: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
+            max-width: 350px;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        #btn-confirmar-whatsapp:hover {
+            background-color: #128C7E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn-disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .error-message {
+            color: #005373;
+            font-size: .9em;
+            margin-top: 5px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #005373;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 5px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #mensaje-confirmacion {
+            display: none;
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        #incompatibilidad-container {
+            display: none;
+            background-color: #fff8e1;
+            color: #e65100;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+            font-weight: bold;
+            text-align: center;
+            font-style: italic;
+        }
+        #mensaje-error-general {
+            display: none;
+            background-color: #fdeaea;
+            color: #a94442;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #eb8c8c;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="asirte-calculator">
+        <h2>Solicitud de Servicios</h2>
+        <p>Complete el formulario y obtenga su costo estimado al instante</p>
+        <p class="responsabilidad">Me responsabilizo por la veracidad de los datos</p>
+        <div id="incompatibilidad-container">
+            ⚠️ NOTA: Algunas necesidades seleccionadas no están incluidas en el tipo de servicio seleccionado, por lo que el costo del servicio puede sufrir alteraciones después de una evaluación presencial.
+        </div>
+        <div id="mensaje-error-general">Revise sus datos y rectifique su información.</div>
+
+        <!-- Información del Cliente -->
+        <div class="form-group">
+            <label for="nombre-cliente">Su nombre completo:</label>
+            <input type="text" id="nombre-cliente" required>
+            <div class="error-message" id="error-nombre-cliente">Ingrese su nombre (mínimo 3 letras)</div>
+        </div>
+        <div class="form-group">
+            <label for="email">Correo electrónico:</label>
+            <input type="email" id="email" required>
+            <div class="error-message" id="error-email">Ingrese un correo válido</div>
+        </div>
+        <div class="form-group">
+            <label for="telefono">Teléfono móvil:</label>
+            <input type="tel" id="telefono" required>
+            <div class="error-message" id="error-telefono">Ingrese un teléfono válido (mínimo 8 dígitos)</div>
+        </div>
+
+        <!-- Información de la Persona a Cuidar -->
+        <div class="form-group">
+            <label for="nombre-paciente">Nombre completo de la persona a cuidar:</label>
+            <input type="text" id="nombre-paciente" required>
+            <div class="error-message" id="error-nombre-paciente">Ingrese el nombre (mínimo 3 letras)</div>
+        </div>
+        <div class="form-group">
+            <label for="relacion">Su relación con la persona a cuidar:</label>
+            <input type="text" id="relacion" placeholder="Esa persona es mi..." required>
+            <div class="error-message" id="error-relacion">Por favor, especifique su relación</div>
+        </div>
+        <div class="form-group">
+            <label for="direccion">Dirección particular (de la persona a cuidar):</label>
+            <input type="text" id="direccion" required>
+            <div class="error-message" id="error-direccion">La dirección debe contener números</div>
+        </div>
+        <div class="form-group">
+            <label for="edad-paciente">Edad de la persona a cuidar:</label>
+            <input type="number" id="edad-paciente" min="0" max="120" required>
+            <div class="error-message" id="error-edad-paciente">Ingrese una edad válida</div>
+        </div>
+        <div class="form-group">
+            <label for="padecimientos">Padecimientos y enfermedades crónicas:</label>
+            <textarea id="padecimientos" rows="3" placeholder="Ej: Diabetes tipo 2, Hipertensión arterial, Alzheimer, etc."></textarea>
+        </div>
+        <div class="form-group">
+            <label for="otros-apuntes">Otros apuntes importantes:</label>
+            <textarea id="otros-apuntes" rows="3" placeholder="Ej: Alergias a medicamentos, horarios especiales, preferencias alimenticias, etc."></textarea>
+        </div>
+
+        <!-- Tipo de Servicio -->
+        <div class="form-group">
+            <label for="servicio">Tipo de Servicio:</label>
+            <select id="servicio" required>
+                <option value="">Seleccione un servicio</option>
+                <option value="ACM">Acompañamiento a Consultas Médicas (ACM)</option>
+                <option value="AC">Acompañamiento en Casa (AC)</option>
+                <option value="AH">Acompañamiento Hospitalario (AH)</option>
+                <option value="CC">Cuidado en Casa (CC)</option>
+                <option value="CH">Cuidado Hospitalario (CH)</option>
+                <option value="CIC">Cuidado Intensivo en Casa (CIC)</option>
+                <option value="CEI">Cuidado Especial Individualizado (CEI)</option>
+            </select>
+            <div class="error-message" id="error-servicio">Seleccione un servicio</div>
+        </div>
+        <div class="form-group">
+            <label for="horario">Horario:</label>
+            <select id="horario" required>
+                <option value="">Seleccione horario</option>
+                <option value="diurno">Diurno</option>
+                <option value="nocturno">Nocturno</option>
+                <option value="24h">24 horas</option>
+            </select>
+            <div class="error-message" id="error-horario">Seleccione un horario</div>
+        </div>
+        <div class="form-group">
+            <label for="duracion">Duración:</label>
+            <select id="duracion" required>
+                <option value="">Seleccione duración</option>
+                <option value="4">4 horas</option>
+                <option value="6">6 horas</option>
+                <option value="8">8 horas</option>
+                <option value="12">12 horas</option>
+            </select>
+            <div class="error-message" id="error-duracion">Seleccione una duración</div>
+        </div>
+
+        <!-- Servicios Adicionales -->
+        <div class="checkbox-group">
+            <label>Requerimientos específicos para el servicio (opcional):</label>
+            <p style="font-size:0.85em; color:#005373; margin: 5px 0 10px; font-style: italic;">
+                Los servicios sombreados ya están comprendidos en el servicio solicitado. El costo estimado varía en dependencia de los otros adicionales que se soliciten.
+            </p>
+            <div class="checkbox-item" id="item-acompanamiento-consultas"><input type="checkbox" id="acompanamiento-consultas"><label for="acompanamiento-consultas">Acompañamiento a consultas médicas</label></div>
+            <div class="checkbox-item" id="item-supervision-tratamiento"><input type="checkbox" id="supervision-tratamiento"><label for="supervision-tratamiento">Supervisión de tratamiento médico</label></div>
+            <div class="checkbox-item" id="item-estimulacion-sensorial"><input type="checkbox" id="estimulacion-sensorial"><label for="estimulacion-sensorial">Estimulación sensorial y socio-emocional</label></div>
+            <div class="checkbox-item" id="item-paseos-movilidad"><input type="checkbox" id="paseos-movilidad"><label for="paseos-movilidad">Paseos y movilidad física</label></div>
+            <div class="checkbox-item" id="item-ducha"><input type="checkbox" id="ducha"><label for="ducha">Aseo y baño en ducha</label></div>
+            <div class="checkbox-item" id="item-signos"><input type="checkbox" id="signos"><label for="signos">Control de signos vitales</label></div>
+            <div class="checkbox-item" id="item-adiestramiento-autonomia"><input type="checkbox" id="adiestramiento-autonomia"><label for="adiestramiento-autonomia">Adiestramiento encaminado a autonomía</label></div>
+            <div class="checkbox-item" id="item-asesoria"><input type="checkbox" id="asesoria"><label for="asesoria">Asesoría nutricional</label></div>
+            <div class="checkbox-item" id="item-seguimiento-heridas"><input type="checkbox" id="seguimiento-heridas"><label for="seguimiento-heridas">Seguimiento a heridas quirúrgicas</label></div>
+            <div class="checkbox-item" id="item-cuidados-piel"><input type="checkbox" id="cuidados-piel"><label for="cuidados-piel">Cuidados de la piel</label></div>
+            <div class="checkbox-item" id="item-movilizacion-hogar"><input type="checkbox" id="movilizacion-hogar"><label for="movilizacion-hogar">Movilización en el hogar</label></div>
+            <div class="checkbox-item" id="item-movilizacion"><input type="checkbox" id="movilizacion"><label for="movilizacion">Movilización en cama</label></div>
+            <div class="checkbox-item" id="item-alimentacion"><input type="checkbox" id="alimentacion"><label for="alimentacion">Alimentación asistida</label></div>
+            <div class="checkbox-item" id="item-camas"><input type="checkbox" id="camas"><label for="camas">Baño en cama</label></div>
+            <div class="checkbox-item" id="item-masajes"><input type="checkbox" id="masajes"><label for="masajes">Masajes terapéuticos</label></div>
+            <div class="checkbox-item" id="item-curas"><input type="checkbox" id="curas"><label for="curas">Cura de heridas quirúrgicas o úlceras</label></div>
+            <div class="checkbox-item" id="item-reeducacion-vesical"><input type="checkbox" id="reeducacion-vesical"><label for="reeducacion-vesical">Re-educación vesical e intestinal</label></div>
+            <div class="checkbox-item" id="item-supervision-psicoticos"><input type="checkbox" id="supervision-psicoticos"><label for="supervision-psicoticos">Supervisión a personas con estados psicóticos</label></div>
+            <div class="checkbox-item" id="item-cuidados-criticos"><input type="checkbox" id="cuidados-criticos"><label for="cuidados-criticos">Cuidados individualizado a personas en estado crítico</label></div>
+            <div class="checkbox-item" id="item-rehabilitacion-postoperatoria"><input type="checkbox" id="rehabilitacion-postoperatoria"><label for="rehabilitacion-postoperatoria">Rehabilitación física post-operatoria</label></div>
+            <div class="checkbox-item" id="item-tareas"><input type="checkbox" id="tareas"><label for="tareas">Asistencia en tareas domésticas</label></div>
+            <div class="checkbox-item" id="item-compras"><input type="checkbox" id="compras"><label for="compras">Asistencia compras y lavado</label></div>
+        </div>
+
+        <!-- Resultado -->
+        <div id="resultado-container">
+            <h3>Cotización Estimada Final</h3>
+            <p id="costo-hora-container" style="display:none;">COSTO ESTIMADO POR HORA: <span id="costo-hora">0</span> CUP</p>
+            <p id="costo-turno-container" style="display:none;">COSTO ESTIMADO POR TURNO LABORAL: <span id="costo-turno">0</span> CUP</p>
+            <div id="timer-display" style="display:none;">
+                Esta cotización expira en <strong><span id="timer-countdown">60</span></strong> segundos
+            </div>
+            <div class="btn-actions">
+                <button id="btn-borrar" class="btn-action">Borrar cotización</button>
+                <button id="btn-nueva-cotizacion" class="btn-action">Nueva cotización</button>
+                <button id="btn-cancelar" class="btn-action">Cancelar y borrar</button>
+            </div>
+            <p id="mensaje-ocultado">Seleccione sus servicios para ver el estimado del costo por turno laboral</p>
+        </div>
+
+        <!-- Mensaje de Confirmación -->
+        <div id="mensaje-confirmacion"></div>
+        <!-- Estado de Carga -->
+        <div class="loading" id="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Procesando su solicitud...</p>
+        </div>
+
+        <!-- Términos y Condiciones -->
+        <div class="terms-container" id="terms-container">
+            <h4>TÉRMINOS Y CONDICIONES</h4>
+            <ol>
+                <li>Declaro que toda la información proporcionada es correcta.</li>
+                <li>Afirmo querer proseguir con la contratación oficial de los servicios de ASIRTE.</li>
+                <li>Acepto que el costo estimado por turno laboral puede sufrir variación cuando la Agencia constate las necesidades reales del servicio solicitado.</li>
+            </ol>
+        </div>
+        <div class="terms-checkbox">
+            <input type="checkbox" id="terminos" required>
+            <label for="terminos">Acepto los términos y condiciones</label>
+            <div class="error-message" id="error-terminos">Debe aceptar los términos para continuar</div>
+        </div>
+
+        <!-- Botones Finales -->
+        <div class="btn-container">
+            <button id="btn-cotizar" class="btn-disabled" disabled>Enviar solicitud de servicio</button>
+            <button id="btn-confirmar-whatsapp">Confirmar por WhatsApp</button>
+        </div>
+    </div>
+
+    <!-- Cargar EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        // === CONFIGURACIÓN EMAILJS ===
+        const EJS = {
+            PK: 'O2kllI3D7gSLogv-y',
+            SID: 'service_asirte',
+            TPL_CLI: 'template_cliente_asirte',
+            TPL_EQ: 'template_equipo_asirte'
+        };
+
+        // === PRECIOS BASE (CUP) ===
+        const costosBase = {
+            "ACM": {"4": 1500, "6": 1950, "8": 2400, "12": 2850, "nocturno": 3000, "24h": 3200},
+            "AC": {"4": 1750, "6": 2275, "8": 2800, "12": 3325, "nocturno": 3590, "24h": 3850},
+            "AH": {"4": 1950, "6": 2535, "8": 3120, "12": 3705, "nocturno": 3998, "24h": 4290},
+            "CC": {"4": 2150, "6": 2795, "8": 3440, "12": 4085, "nocturno": 4410, "24h": 4730},
+            "CH": {"4": 2350, "6": 3055, "8": 3760, "12": 4465, "nocturno": 4820, "24h": 5170},
+            "CIC": {"4": 2550, "6": 3315, "8": 4080, "12": 4845, "nocturno": 5230, "24h": 5610},
+            "CEI": {"4": 2750, "6": 3575, "8": 4400, "12": 5225, "nocturno": 5640, "24h": 6050}
+        };
+
+        // === COSTOS ADICIONALES (CUP) ===
+        const costosAdicionales = {
+            "acompanamiento-consultas": 0,
+            "supervision-tratamiento": 0,
+            "estimulacion-sensorial": 0,
+            "paseos-movilidad": 0,
+            "ducha": 150,
+            "signos": 50,
+            "adiestramiento-autonomia": 0,
+            "asesoria": 50,
+            "seguimiento-heridas": 0,
+            "cuidados-piel": 0,
+            "movilizacion-hogar": 0,
+            "movilizacion": 100,
+            "alimentacion": 50,
+            "camas": 200,
+            "masajes": 50,
+            "curas": 150,
+            "reeducacion-vesical": 0,
+            "supervision-psicoticos": 0,
+            "cuidados-criticos": 0,
+            "rehabilitacion-postoperatoria": 0,
+            "tareas": 200,
+            "compras": 400
+        };
+
+        // === NIVELES DE CADA SERVICIO ===
+        const niveles = {
+            "ACM": 1,
+            "AC": 2,
+            "AH": 3,
+            "CC": 4,
+            "CH": 5,
+            "CIC": 6,
+            "CEI": 7
+        };
+
+        // === SERVICIOS POR NIVEL ===
+        const serviciosPorNivel = {
+            1: ["acompanamiento-consultas"],
+            2: ["supervision-tratamiento", "estimulacion-sensorial", "paseos-movilidad"],
+            3: ["ducha", "signos"],
+            4: ["adiestramiento-autonomia", "asesoria", "seguimiento-heridas", "cuidados-piel", "movilizacion-hogar"],
+            5: ["movilizacion", "alimentacion", "camas", "masajes"],
+            6: ["curas", "reeducacion-vesical"],
+            7: ["supervision-psicoticos", "cuidados-criticos", "rehabilitacion-postoperatoria", "tareas"]
+        };
+
+        // === VARIABLES GLOBALES ===
+        let temp;
+        let tRestante = 60;
+        let datosSolicitud = null;
+        let procesamientoEnCurso = false;
+
+        // === NÚMERO WHATSAPP ===
+        const NUMERO_WHATSAPP_AGENCIA = '5350633453';
+
+        // 🔥 NUEVO: URL APPS SCRIPT (REEMPLAZA ESTO POR TU DEPLOYMENT ID REAL)
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzPDcdOfue0JeKUmZufImzP-AzE-A-MGuNvsECpdcq7fHEPXhH6NTWhXMbbv5BBB0r2/exec";
+
+        // === CALCULAR COSTO (IGUAL QUE ANTES) ===
+        function calcularCosto() {
+            const serv = document.getElementById('servicio').value;
+            const hora = document.getElementById('horario').value;
+            const dur = document.getElementById('duracion').value;
+            if (!serv || !hora || !dur) {
+                document.getElementById('costo-hora-container').style.display = 'none';
+                document.getElementById('costo-turno-container').style.display = 'none';
+                document.getElementById('resultado-container').style.display = 'none';
+                document.getElementById('mensaje-ocultado').style.display = 'block';
+                return;
+            }
+
+            let costoBase;
+            if (hora === '24h') {
+                costoBase = costosBase[serv]['24h'];
+            } else {
+                costoBase = costosBase[serv][hora === 'nocturno' ? 'nocturno' : dur];
+            }
+
+            const nivelServ = niveles[serv];
+            let incl = [];
+            let adic = [];
+            for (const nivel in serviciosPorNivel) {
+                if (parseInt(nivel) <= nivelServ) {
+                    incl = incl.concat(serviciosPorNivel[nivel]);
+                } else {
+                    adic = adic.concat(serviciosPorNivel[nivel]);
+                }
+            }
+
+            Object.keys(costosAdicionales).forEach(k => {
+                const cb = document.getElementById(k);
+                const item = document.getElementById(`item-${k}`);
+                if (cb && item) {
+                    const estaIncluido = incl.includes(k);
+                    if (estaIncluido) {
+                        cb.disabled = true;
+                        cb.checked = false;
+                        item.classList.add('incluido');
+                    } else {
+                        cb.disabled = false;
+                        item.classList.remove('incluido');
+                    }
+                }
+            });
+
+            let adicionales = 0;
+            adic.forEach(k => {
+                if (document.getElementById(k)?.checked) {
+                    adicionales += costosAdicionales[k];
+                }
+            });
+
+            const total = costoBase + adicionales;
+            const horas = hora === '24h' ? 24 : parseInt(dur);
+            const costoHora = Math.round(total / horas);
+
+            document.getElementById('costo-hora').textContent = costoHora.toLocaleString();
+            document.getElementById('costo-turno').textContent = total.toLocaleString();
+
+            if (formCompleto()) {
+                document.getElementById('costo-hora-container').style.display = 'block';
+                document.getElementById('costo-turno-container').style.display = 'block';
+                document.getElementById('mensaje-ocultado').style.display = 'none';
+                document.getElementById('resultado-container').style.display = 'block';
+            } else {
+                document.getElementById('costo-hora-container').style.display = 'none';
+                document.getElementById('costo-turno-container').style.display = 'none';
+                document.getElementById('resultado-container').style.display = 'none';
+                document.getElementById('mensaje-ocultado').style.display = 'block';
+            }
+            validarForm();
+        }
+
+        // === LIMPIAR, VALIDAR, etc. (IGUALES) ===
+        function limpiarForm() {
+            ['nombre-cliente','email','telefono','nombre-paciente','relacion','direccion','edad-paciente','padecimientos','otros-apuntes'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            ['servicio','horario','duracion'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            Object.keys(costosAdicionales).forEach(k => {
+                const cb = document.getElementById(k);
+                const item = document.getElementById(`item-${k}`);
+                if (cb && item) {
+                    cb.checked = false;
+                    cb.disabled = false;
+                    item.classList.remove('incluido');
+                }
+            });
+            document.getElementById('costo-hora-container').style.display = 'none';
+            document.getElementById('costo-turno-container').style.display = 'none';
+            document.getElementById('resultado-container').style.display = 'none';
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('btn-borrar').style.display = 'none';
+            document.getElementById('btn-nueva-cotizacion').style.display = 'none';
+            document.getElementById('btn-cancelar').style.display = 'none';
+            document.getElementById('mensaje-ocultado').style.display = 'block';
+            document.querySelectorAll('.error-message').forEach(e => e.style.display = 'none');
+            document.getElementById('terminos').checked = false;
+            document.getElementById('terms-container').style.display = 'block';
+            clearTimeout(temp);
+            tRestante = 60;
+            document.getElementById('mensaje-confirmacion').style.display = 'none';
+            document.getElementById('mensaje-error-general').style.display = 'none';
+            document.getElementById('btn-confirmar-whatsapp').style.display = 'none';
+            document.getElementById('btn-cotizar').style.display = 'block';
+            document.getElementById('btn-cotizar').classList.add('btn-disabled');
+            document.getElementById('btn-cotizar').disabled = true;
+            validarForm();
+        }
+
+        function reiniciarTemp() {
+            clearTimeout(temp);
+            if (formCompleto()) {
+                document.getElementById('timer-countdown').textContent = tRestante;
+                temp = setInterval(() => {
+                    tRestante--;
+                    if (tRestante <= 0) {
+                        limpiarForm();
+                        clearInterval(temp);
+                    } else {
+                        document.getElementById('timer-countdown').textContent = tRestante;
+                    }
+                }, 1000);
+            }
+        }
+
+        function formCompleto() {
+            const req = ['nombre-cliente', 'email', 'telefono', 'nombre-paciente', 'relacion', 'direccion', 'edad-paciente'];
+            let todos = req.every(id => document.getElementById(id).value.trim() !== '');
+            const email = document.getElementById('email').value;
+            const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            const tel = document.getElementById('telefono').value;
+            const telValido = tel.replace(/\D/g, '').length >= 8;
+            const serv = document.getElementById('servicio').value;
+            const hora = document.getElementById('horario').value;
+            const dur = document.getElementById('duracion').value;
+            const term = document.getElementById('terminos').checked;
+            return todos && emailValido && telValido && serv && hora && dur && term;
+        }
+
+        function validarForm() {
+            let valido = true;
+            const validarCampo = (id, validador, msg) => {
+                const valor = document.getElementById(id).value.trim();
+                const error = document.getElementById(`error-${id}`);
+                if (!valor || !validador(valor)) {
+                    error.style.display = 'block';
+                    valido = false;
+                } else {
+                    error.style.display = 'none';
+                }
+            };
+            validarCampo('nombre-cliente', v => v.length >= 3, 'nombre');
+            validarCampo('nombre-paciente', v => v.length >= 3, 'nombre');
+            validarCampo('relacion', v => v.length > 0, 'relacion');
+            validarCampo('direccion', v => /\d/.test(v), 'direccion');
+            validarCampo('email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'email');
+            validarCampo('telefono', v => v.replace(/\D/g, '').length >= 8, 'telefono');
+            validarCampo('edad-paciente', v => v >= 0 && v <= 120, 'edad');
+            ['servicio','horario','duracion'].forEach(id => {
+                const campo = document.getElementById(id);
+                const error = document.getElementById(`error-${id}`);
+                error.style.display = campo.value ? 'none' : 'block';
+                if (!campo.value) valido = false;
+            });
+            document.getElementById('error-terminos').style.display = document.getElementById('terminos').checked ? 'none' : 'block';
+            if (!document.getElementById('terminos').checked) valido = false;
+            const btn = document.getElementById('btn-cotizar');
+            btn.disabled = !valido;
+            btn.classList.toggle('btn-disabled', !valido);
+            if (valido && document.getElementById('servicio').value && document.getElementById('horario').value && document.getElementById('duracion').value) {
+                document.getElementById('costo-hora-container').style.display = 'block';
+                document.getElementById('costo-turno-container').style.display = 'block';
+                document.getElementById('mensaje-ocultado').style.display = 'none';
+                document.getElementById('resultado-container').style.display = 'block';
+            } else {
+                document.getElementById('costo-hora-container').style.display = 'none';
+                document.getElementById('costo-turno-container').style.display = 'none';
+                document.getElementById('resultado-container').style.display = 'none';
+                document.getElementById('mensaje-ocultado').style.display = 'block';
+            }
+            return valido;
+        }
+
+        // 🔥 NUEVO: ENVIAR A APPS SCRIPT (REEMPLAZA enviarGoogleForms)
+        async function enviarConAppsScript(datos) {
+            const formData = new FormData();
+            // Mapeo EXACTO a 17 columnas de tu Sheet (A–Q)
+            formData.append("timestamp", datos.timestamp);
+            formData.append("nombreCliente", datos.nombreCliente);
+            formData.append("email", datos.email);
+            formData.append("telefono", datos.telefono);
+            formData.append("nombrePaciente", datos.nombrePaciente);
+            formData.append("edadPaciente", datos.edadPaciente);
+            formData.append("relacion", datos.relacion);
+            formData.append("direccion", datos.direccion);
+            formData.append("padecimientos", datos.padecimientos || "Ninguno");
+            formData.append("otrosApuntes", datos.otrosApuntes || "Ninguno");
+            formData.append("servicio", datos.servicio); // Columna K
+            formData.append("duracionHoras", datos.duracion + " horas"); // Columna L
+            formData.append("horario", datos.horario); // Columna M
+            formData.append("serviciosAdicionales", datos.serviciosAdicionales.join(", ") || "Ninguno"); // Columna N
+            formData.append("incompatibilidad", datos.incompatibilidad || "No hay incompatibilidades"); // Columna O
+            formData.append("costoBase", datos.costoBase);
+            formData.append("total", datos.total); // Columna Q
+
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            });
+            const result = await response.json();
+            if (result.result !== "success") throw new Error(result.message);
+        }
+
+        // === RECOPILAR DATOS (IGUAL) ===
+        function recopilarDatos() {
+            const nomCli = document.getElementById('nombre-cliente').value;
+            const nomPac = document.getElementById('nombre-paciente').value;
+            const rel = document.getElementById('relacion').value;
+            const dir = document.getElementById('direccion').value;
+            const email = document.getElementById('email').value;
+            const tel = document.getElementById('telefono').value;
+            const serv = document.getElementById('servicio').value;
+            const hora = document.getElementById('horario').value;
+            const dur = document.getElementById('duracion').value;
+            const total = parseFloat(document.getElementById('costo-turno').textContent.replace(/,/g, ''));
+            const nivelServ = niveles[serv];
+            let incl = [];
+            let adic = [];
+            for (const nivel in serviciosPorNivel) {
+                if (parseInt(nivel) <= nivelServ) {
+                    incl = incl.concat(serviciosPorNivel[nivel]);
+                } else {
+                    adic = adic.concat(serviciosPorNivel[nivel]);
+                }
+            }
+            let servAdic = [];
+            adic.forEach(k => {
+                if (document.getElementById(k).checked) {
+                    servAdic.push(document.querySelector(`label[for="${k}"]`).textContent);
+                }
+            });
+            let incompatibilidad = "";
+            const tieneIncompatibilidad = servAdic.length > 0;
+            if (tieneIncompatibilidad) {
+                incompatibilidad = "Algunas necesidades seleccionadas no están incluidas en el tipo de servicio seleccionado, por lo que el costo del servicio puede sufrir alteraciones después de una evaluación presencial.";
+            }
+            return {
+                timestamp: new Date().toLocaleString(),
+                nombreCliente: nomCli,
+                email,
+                telefono: tel,
+                nombrePaciente: nomPac,
+                relacion: rel,
+                direccion: dir,
+                servicio: nomServ,
+                horario: hora,
+                duracion: dur,
+                serviciosAdicionales: servAdic,
+                costoBase: calcCostoBase(),
+                costoAdicional: calcCostoAdicional(),
+                total,
+                edadPaciente: document.getElementById('edad-paciente').value,
+                padecimientos: document.getElementById('padecimientos').value,
+                otrosApuntes: document.getElementById('otros-apuntes').value,
+                incompatibilidad: incompatibilidad
+            };
+        }
+
+        function calcCostoBase() {
+            const serv = document.getElementById('servicio').value;
+            const hora = document.getElementById('horario').value;
+            const dur = document.getElementById('duracion').value;
+            if (!serv || !hora || !dur) return 0;
+            let costoBase;
+            if (hora === 'diurno' || hora === 'nocturno') {
+                costoBase = costosBase[serv][dur];
+                if (hora === 'nocturno' && dur !== '24h') {
+                    costoBase = costosBase[serv]['nocturno'];
+                }
+            } else {
+                costoBase = costosBase[serv]['24h'];
+            }
+            return costoBase;
+        }
+        function calcCostoAdicional() {
+            const serv = document.getElementById('servicio').value;
+            const nivelServ = niveles[serv];
+            let adicionales = 0;
+            for (const nivel in serviciosPorNivel) {
+                if (parseInt(nivel) > nivelServ) {
+                    serviciosPorNivel[nivel].forEach(k => {
+                        if (document.getElementById(k)?.checked) {
+                            adicionales += costosAdicionales[k];
+                        }
+                    });
+                }
+            }
+            return adicionales;
+        }
+
+        // === CORREOS Y WHATSAPP (IGUAL) ===
+        function enviarCorreoCli(datos) {
+            const params = {
+                to_email: datos.email,
+                client_name: datos.nombreCliente,
+                service_type: datos.servicio,
+                service_schedule: datos.horario,
+                service_duration: datos.duracion,
+                total_price: datos.total,
+                patient_age: datos.edadPaciente,
+                patient_conditions: datos.padecimientos,
+                patient_notes: datos.otrosApuntes
+            };
+            return emailjs.send(EJS.SID, EJS.TPL_CLI, params, EJS.PK)
+                .then(() => console.log("✅ Correo cliente"))
+                .catch(err => { throw err; });
+        }
+        function enviarCorreoEq(datos) {
+            const params = {
+                timestamp: datos.timestamp,
+                client_name: datos.nombreCliente,
+                client_phone: datos.telefono,
+                client_email: datos.email,
+                service_type: datos.servicio,
+                service_schedule: datos.horario,
+                service_duration: datos.duracion,
+                total_price: datos.total,
+                additional_services: datos.serviciosAdicionales.join(', '),
+                patient_name: datos.nombrePaciente,
+                patient_relation: datos.relacion,
+                patient_address: datos.direccion,
+                patient_age: datos.edadPaciente,
+                patient_conditions: datos.padecimientos,
+                patient_notes: datos.otrosApuntes,
+                incompatibility_warning: datos.incompatibilidad
+            };
+            return emailjs.send(EJS.SID, EJS.TPL_EQ, params, EJS.PK)
+                .then(() => console.log("✅ Notificación equipo"))
+                .catch(err => { throw err; });
+        }
+        function generarMensajeWhatsApp(datos) {
+            const costoPorHora = Math.round(datos.total / (datos.horario === '24h' ? 24 : parseInt(datos.duracion)));
+            return `*CONFIRMACIÓN DE COTIZACIÓN ASIRTE*
+*Cliente:* ${datos.nombreCliente}
+*Teléfono:* ${datos.telefono}
+*Servicio:* ${datos.servicio}
+*Horario:* ${datos.horario}
+*Duración:* ${datos.duracion} horas
+*Costo por hora:* ${costoPorHora} CUP
+*Costo por turno laboral:* ${datos.total} CUP
+*Persona a cuidar:* ${datos.nombrePaciente}
+*Edad:* ${datos.edadPaciente}
+*Relación:* ${datos.relacion}
+*Dirección:* ${datos.direccion}
+*Padecimientos:* ${datos.padecimientos|| 'Ninguno especificado'}
+*Otros apuntes:* ${datos.otrosApuntes|| 'Ninguno especificado'}
+*Servicios adicionales:* ${datos.serviciosAdicionales.join(', ')|| 'Ninguno'}`;
+        }
+        function enviarWhatsAppAgencia() {
+            if (!datosSolicitud) {
+                alert('Primero envíe su solicitud.');
+                return;
+            }
+            const url = `https://wa.me/${NUMERO_WHATSAPP_AGENCIA}?text=${encodeURIComponent(generarMensajeWhatsApp(datosSolicitud))}`;
+            window.open(url, '_blank');
+        }
+
+        // 🔥 MODIFICADO: PROCESAR SOLICITUD (USAR enviarConAppsScript)
+        async function procesarSolicitud() {
+            if (procesamientoEnCurso) return;
+            if (!formCompleto()) {
+                document.getElementById('mensaje-error-general').style.display = 'block';
+                return;
+            }
+            procesamientoEnCurso = true;
+            const datos = recopilarDatos();
+            datosSolicitud = datos;
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('btn-cotizar').disabled = true;
+            try {
+                // ☑️ SOLO CAMBIO: usar Apps Script en vez de Google Forms
+                await enviarConAppsScript(datos);
+                // Correos igual (con datos completos)
+                if (EJS.PK) {
+                    await Promise.all([enviarCorreoCli(datos), enviarCorreoEq(datos)]);
+                }
+                // Éxito
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('mensaje-confirmacion').textContent = '✅ ¡Solicitud enviada correctamente!';
+                document.getElementById('mensaje-confirmacion').style.display = 'block';
+                limpiarForm();
+                document.getElementById('btn-cotizar').style.display = 'none';
+                document.getElementById('btn-confirmar-whatsapp').style.display = 'block';
+                setTimeout(() => document.getElementById('mensaje-confirmacion').style.display = 'none', 5000);
+            } catch (error) {
+                console.error("❌ Error:", error);
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('mensaje-confirmacion').textContent = '❌ Error al enviar. Intente de nuevo.';
+                document.getElementById('mensaje-confirmacion').style.display = 'block';
+                document.getElementById('btn-cotizar').disabled = false;
+                document.getElementById('btn-cotizar').classList.remove('btn-disabled');
+                setTimeout(() => document.getElementById('mensaje-confirmacion').style.display = 'none', 3000);
+            } finally {
+                procesamientoEnCurso = false;
+            }
+        }
+
+        // === INICIALIZACIÓN ===
+        document.addEventListener('DOMContentLoaded', () => {
+            emailjs.init(EJS.PK);
+            ['servicio','horario','duracion'].forEach(id => 
+                document.getElementById(id).addEventListener('change', calcularCosto));
+            Object.keys(costosAdicionales).forEach(k => 
+                document.getElementById(k)?.addEventListener('change', calcularCosto));
+            ['email','telefono','direccion','nombre-cliente','nombre-paciente','edad-paciente','relacion']
+                .forEach(id => document.getElementById(id).addEventListener('input', validarForm));
+            document.getElementById('terminos').addEventListener('change', validarForm);
+            document.getElementById('btn-cotizar').addEventListener('click', procesarSolicitud);
+            document.getElementById('btn-confirmar-whatsapp').addEventListener('click', enviarWhatsAppAgencia);
+            ['btn-borrar','btn-nueva-cotizacion','btn-cancelar'].forEach(id =>
+                document.getElementById(id).addEventListener('click', limpiarForm));
+            validarForm();
+        });
+    </script>
+
+    <!-- 
+    === APPS SCRIPT doPost (PARA COPIAR A TU PROYECTO) ===
+    function doPost(e) {
+      try {
+        const p = e.parameter;
+        const sheet = SpreadsheetApp.openById("1RQ56Z9OeSZcINzpuyofUcdR8K72BYNPc1tI5mCTar7g").getSheetByName("Hoja 1");
+        const rowData = [
+          p.timestamp,
+          p.nombreCliente,
+          p.email,
+          p.telefono,
+          p.nombrePaciente,
+          p.edadPaciente,
+          p.relacion,
+          p.direccion,
+          p.padecimientos,
+          p.otrosApuntes,
+          p.servicio,
+          p.duracionHoras,
+          p.horario,
+          p.serviciosAdicionales,
+          p.incompatibilidad,
+          parseFloat(p.costoBase) || 0,
+          parseFloat(p.total) || 0
+        ];
+        sheet.appendRow(rowData);
+        return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
+      } catch (err) {
+        return ContentService.createTextOutput(JSON.stringify({ result: "error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    -->
+</body>
+</html>
