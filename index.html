@@ -707,7 +707,7 @@
                 headers: { 'Accept': 'application/json' }
             });
             const result = await response.json();
-            if (result.result !== "success") throw new Error(result.message);
+            if (result.result !== "success") throw new Error("Error en Apps Script");
         }
 
         // === RECOPILAR DATOS (IGUAL) ===
@@ -956,3 +956,4 @@
     -->
 </body>
 </html>
+
