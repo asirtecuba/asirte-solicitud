@@ -681,34 +681,38 @@
 
         // 🔥 NUEVO: ENVIAR A APPS SCRIPT (REEMPLAZA enviarGoogleForms)
         async function enviarConAppsScript(datos) {
-            const formData = new FormData();
-            // Mapeo EXACTO a 17 columnas de tu Sheet (A–Q)
-            formData.append("timestamp", datos.timestamp);
-            formData.append("nombreCliente", datos.nombreCliente);
-            formData.append("email", datos.email);
-            formData.append("telefono", datos.telefono);
-            formData.append("nombrePaciente", datos.nombrePaciente);
-            formData.append("edadPaciente", datos.edadPaciente);
-            formData.append("relacion", datos.relacion);
-            formData.append("direccion", datos.direccion);
-            formData.append("padecimientos", datos.padecimientos || "Ninguno");
-            formData.append("otrosApuntes", datos.otrosApuntes || "Ninguno");
-            formData.append("servicio", datos.servicio); // Columna K
-            formData.append("duracionHoras", datos.duracion + " horas"); // Columna L
-            formData.append("horario", datos.horario); // Columna M
-            formData.append("serviciosAdicionales", datos.serviciosAdicionales.join(", ") || "Ninguno"); // Columna N
-            formData.append("incompatibilidad", datos.incompatibilidad || "No hay incompatibilidades"); // Columna O
-            formData.append("costoBase", datos.costoBase);
-            formData.append("total", datos.total); // Columna Q
+    const formData = new FormData();
+    formData.append("timestamp", datos.timestamp);
+    formData.append("nombreCliente", datos.nombreCliente);
+    formData.append("email", datos.email);
+    formData.append("telefono", datos.telefono);
+    formData.append("nombrePaciente", datos.nombrePaciente);
+    formData.append("edadPaciente", datos.edadPaciente);
+    formData.append("relacion", datos.relacion);
+    formData.append("direccion", datos.direccion);
+    formData.append("padecimientos", datos.padecimientos || "Ninguno");
+    formData.append("otrosApuntes", datos.otrosApuntes || "Ninguno");
+    formData.append("servicio", datos.servicio);
+    formData.append("duracionHoras", datos.duracion + " horas");
+    formData.append("horario", datos.horario);
+    formData.append("serviciosAdicionales", datos.serviciosAdicionales.join(", ") || "Ninguno");
+    formData.append("incompatibilidad", datos.incompatibilidad || "No hay incompatibilidades");
+    formData.append("costoBase", datos.costoBase);
+    formData.append("total", datos.total);
 
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                body: formData,
-                headers: { 'Accept': 'application/json' }
-            });
-            const result = await response.json();
-            if (result.result !== "success") throw new Error("Error en Apps Script");
-        }
+    // ✅ CORRECCIÓN 1: URL sin espacios
+    // ✅ CORRECCIÓN 2: SIN headers -> deja que FormData defina Content-Type
+    const response = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: formData
+        // ⚠️ NO poner headers aquí
+    });
+
+    const result = await response.json();
+    if (result.result !== "success") {
+        throw new Error(result.message || "Error desconocido en Apps Script");
+    }
+}
 
 // === RECOPILAR DATOS (CORREGIDO: nomServ definido antes de usarse) ===
 function recopilarDatos() {
