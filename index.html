@@ -710,60 +710,64 @@
             if (result.result !== "success") throw new Error("Error en Apps Script");
         }
 
-        // === RECOPILAR DATOS (IGUAL) ===
-        function recopilarDatos() {
-            const nomCli = document.getElementById('nombre-cliente').value;
-            const nomPac = document.getElementById('nombre-paciente').value;
-            const rel = document.getElementById('relacion').value;
-            const dir = document.getElementById('direccion').value;
-            const email = document.getElementById('email').value;
-            const tel = document.getElementById('telefono').value;
-            const serv = document.getElementById('servicio').value;
-            const hora = document.getElementById('horario').value;
-            const dur = document.getElementById('duracion').value;
-            const total = parseFloat(document.getElementById('costo-turno').textContent.replace(/,/g, ''));
-            const nivelServ = niveles[serv];
-            let incl = [];
-            let adic = [];
-            for (const nivel in serviciosPorNivel) {
-                if (parseInt(nivel) <= nivelServ) {
-                    incl = incl.concat(serviciosPorNivel[nivel]);
-                } else {
-                    adic = adic.concat(serviciosPorNivel[nivel]);
-                }
-            }
-            let servAdic = [];
-            adic.forEach(k => {
-                if (document.getElementById(k).checked) {
-                    servAdic.push(document.querySelector(`label[for="${k}"]`).textContent);
-                }
-            });
-            let incompatibilidad = "";
-            const tieneIncompatibilidad = servAdic.length > 0;
-            if (tieneIncompatibilidad) {
-                incompatibilidad = "Algunas necesidades seleccionadas no están incluidas en el tipo de servicio seleccionado, por lo que el costo del servicio puede sufrir alteraciones después de una evaluación presencial.";
-            }
-            return {
-                timestamp: new Date().toLocaleString(),
-                nombreCliente: nomCli,
-                email,
-                telefono: tel,
-                nombrePaciente: nomPac,
-                relacion: rel,
-                direccion: dir,
-                servicio: nomServ,
-                horario: hora,
-                duracion: dur,
-                serviciosAdicionales: servAdic,
-                costoBase: calcCostoBase(),
-                costoAdicional: calcCostoAdicional(),
-                total,
-                edadPaciente: document.getElementById('edad-paciente').value,
-                padecimientos: document.getElementById('padecimientos').value,
-                otrosApuntes: document.getElementById('otros-apuntes').value,
-                incompatibilidad: incompatibilidad
-            };
+// === RECOPILAR DATOS (CORREGIDO: nomServ definido antes de usarse) ===
+function recopilarDatos() {
+    const nomCli = document.getElementById('nombre-cliente').value;
+    const nomPac = document.getElementById('nombre-paciente').value;
+    const rel = document.getElementById('relacion').value;
+    const dir = document.getElementById('direccion').value;
+    const email = document.getElementById('email').value;
+    const tel = document.getElementById('telefono').value;
+    const serv = document.getElementById('servicio').value;
+    const hora = document.getElementById('horario').value;
+    const dur = document.getElementById('duracion').value;
+    const total = parseFloat(document.getElementById('costo-turno').textContent.replace(/,/g, ''));
+    
+    // ✅ CORRECCIÓN: definir nomServ ANTES de usarla
+    let nomServ = serv; // Valor real del select
+
+    const nivelServ = niveles[serv];
+    let incl = [];
+    let adic = [];
+    for (const nivel in serviciosPorNivel) {
+        if (parseInt(nivel) <= nivelServ) {
+            incl = incl.concat(serviciosPorNivel[nivel]);
+        } else {
+            adic = adic.concat(serviciosPorNivel[nivel]);
         }
+    }
+    let servAdic = [];
+    adic.forEach(k => {
+        if (document.getElementById(k).checked) {
+            servAdic.push(document.querySelector(`label[for="${k}"]`).textContent);
+        }
+    });
+    let incompatibilidad = "";
+    const tieneIncompatibilidad = servAdic.length > 0;
+    if (tieneIncompatibilidad) {
+        incompatibilidad = "Algunas necesidades seleccionadas no están incluidas en el tipo de servicio seleccionado, por lo que el costo del servicio puede sufrir alteraciones después de una evaluación presencial.";
+    }
+    return {
+        timestamp: new Date().toLocaleString(),
+        nombreCliente: nomCli,
+        email,
+        telefono: tel,
+        nombrePaciente: nomPac,
+        relacion: rel,
+        direccion: dir,
+        servicio: nomServ, // ✅ Ahora sí está definido
+        horario: hora,
+        duracion: dur,
+        serviciosAdicionales: servAdic,
+        costoBase: calcCostoBase(),
+        costoAdicional: calcCostoAdicional(),
+        total,
+        edadPaciente: document.getElementById('edad-paciente').value,
+        padecimientos: document.getElementById('padecimientos').value,
+        otrosApuntes: document.getElementById('otros-apuntes').value,
+        incompatibilidad: incompatibilidad
+    };
+}
 
         function calcCostoBase() {
             const serv = document.getElementById('servicio').value;
@@ -956,4 +960,3 @@
     -->
 </body>
 </html>
-
